@@ -44,7 +44,7 @@ function calculateArea(wall) {
   }
   
 
-  function calculatePrice(area, brand, colour) {
+function calculatePrice(area, brand, colour) {
     return area * prices[brand][colour];
   }
 
