@@ -1,3 +1,75 @@
+
+//Class for some general area, calculates area of area based on it's shape and dimensions
+class Area {
+    constructor(shape, dimensions) {
+      this.shape = shape;
+      this.dimensions = dimensions;
+      this.area = this.calculateArea();
+    }
+
+    calculateArea() {
+      if (this.shape === 'Rectangle') {
+        return this.dimensions[0] * this.dimensions[1];
+      } 
+      else if (this.shape === 'Triangle') {
+        const [a, b, c] = this.dimensions;
+        const s = (a + b + c) / 2;
+        return Math.sqrt(s * (s - a) * (s - b) * (s - c));
+      } 
+      else if (this.shape === 'Circle') {
+        return (this.dimensions[0] / 2) ** 2 * Math.PI;
+      }
+    }
+
+    getDetails(){
+        return `with Shape: ${this.shape}  and Dimensions: ${this.dimensions}`
+    }
+  }
+
+//Class for catalogue with methods for updating, setting and getting, catalogue stored as a dict of dicts of arrays in the format brand: paint: [[can size, cost/l],...]
+class Catalogue{
+    constructor(){
+
+        this.catalogue= {
+            'Dulux': {
+                "Matt White": [[10,2.40],[5,3.60],[2.5,6.40]],
+                "Pure Brilliant White Silk Emulsion": [[10,2.40],[5,3.60],[2.5,6.40]],
+                "Matt Standard Emerald Glade": [[10,2.40],[5,3.60],[2.5,6]],
+                "Matt Easycare Willow Emulsion": [[2.5,11.20],[0.03,81.67]],
+                "Kiwi Crush Silk": [[2.5,8.80]],
+            },
+            'Zinsser': {
+                "Matt White Anti Mold": [[1,21]],
+                "Perma White Satin Anti Mold": [[2.5,16.80],[1,21]],
+                "Black Multi Surface AllCoat": [[1,28]],
+            },
+            'Berger': {
+                "Silk Emulsion Lemon Glow": [[2.5,8.40]],
+                "Navy Blue Non-Drip": [[0.75,22.19]],
+                "Quick Dry Matt White": [[10,4],[5,4.50],[3,6.30],[1,12.20]],
+                "Gloss Non-Drip Russian Red": [[0.75,22.19]],
+                "Satin Magnolla": [[0.75,28.00]]
+            }
+        };
+    }
+
+    setCatalogue(catalogue){
+        this.catalogue = catalogue;
+    }
+
+    addendCatalogue(catalogue){
+        this.catalogue = { ...this.catalogue, ...catalogue};
+    }
+
+    updateCatalogue(catalogue){
+
+    }
+
+    getCatalogue(){
+        console.log(this.catalogue);
+    }
+}
+//Setup readline for reading cmd input and writing to console
 const readline = require('node:readline');
 const rl = readline.createInterface({
     input: process.stdin,
@@ -6,28 +78,8 @@ const rl = readline.createInterface({
 
 const sides = { 'Rectangle': 2, 'Circle': 1, 'Triangle': 3 };
 const shapes = ['Rectangle', 'Triangle', 'Circle'];
-const prices = {
-    'Dulux': {
-        "Matt White": 2.40,
-        "Pure Brilliant White Silk Emulsion": 2.40,
-        "Matt Standard Emerald Glade": 2.45,
-        "Matt Easycare Willow Emulsion": 2.45,
-        "Kiwi Crush Silk": 8.80
-    },
-    'Zinsser': {
-        "Matt White Anti Mold": 21,
-        "Perma White Satin Anti Mold": 16.80,
-        "Black Multi Surface AllCoat": 28
-    },
-    'Berger': {
-        "Silk Emulsion Lemon Glow": 8.40,
-        "Navy Blue Non-Drip": 22.19,
-        "Quick Dry Matt White": 12.20,
-        "Gloss Non-Drip Russian Red": 22.19,
-        "Satin Magnolla": 28
-    }
-};
 
+//Function to allow readline module to act similarly to let var = prompt() syntax, takes string as arg to feed to realine module and returns value read by readline question. 
 function promptUser(question) {
     return new Promise((resolve) => {
         rl.question(question, (answer) => {
@@ -35,29 +87,12 @@ function promptUser(question) {
         });
     });
 }
-
-function calculateArea(shape, dimensions) {
-    if (shape === 'Rectangle') {
-        return dimensions[0] * dimensions[1];
-    } 
-    else if (shape === 'Triangle') {
-        const [a, b, c] = dimensions;
-        const s = (a + b + c) / 2;
-        return Math.sqrt(s * (s - a) * (s - b) * (s - c));
-    } 
-    else if (shape === 'Circle') {
-        return (dimensions[0] / 2) ** 2 * Math.PI;
-    }
+//Function takes an area, brand and colour and returns total cost of covering that area in that paint
+function calculatePrice(area, brand, colour) {//update
+    let catalogue = new Catalogue()
+    return area * catalogue.catalogue[brand][colour];
 }
-
-function calculatePrice(area, brand, colour) {
-    return area * prices[brand][colour];
-}
-
-function showCatalogue() {
-    console.log(prices);
-}
-
+//Function to give user dynamic prompt based on the shape of their given area
 function shapeInstructions(shape,area){
     switch (shape){
         case 'Rectangle':
@@ -71,7 +106,7 @@ function shapeInstructions(shape,area){
             break;
     }
 }
-
+//Function to get users desired shape and ensure it is a valid input
 async function getShape(area) {
     let shape = await promptUser(`Please enter shape of ${area} (Rectangle, Triangle, Circle): `);
     if (!shapes.includes(shape)) {
@@ -81,7 +116,7 @@ async function getShape(area) {
     }
     return shape;
 }
-
+//Function to get all nececarry dimensions of the given shape
 async function getAreas(shape) {
     let dimensions = [];
     for (let side = 0; side < sides[shape]; side++) {
@@ -89,7 +124,7 @@ async function getAreas(shape) {
     }
     return dimensions;
 }
-
+//Function to handle getting info about users walls
 async function userForm() {
     let walls = [];
     const numWalls = parseInt(await promptUser("Please enter the number of walls you would like to paint: "));
@@ -103,12 +138,13 @@ async function userForm() {
         if (!shape) continue;
         //Find wall dimensions
         console.log("Next, you will be asked to enter the dimensions of your wall: ");
-        shapeInstructions(shape,"wall")
+        shapeInstructions(shape,"wall");
         let dimensions = await getAreas(shape);
         //Get brand and colour preferences
         const viewCatalogue = await promptUser("You will now be asked for your paint preferences, if you need to view the paint catalogue please type 1, otherwise press enter: ");
         if (viewCatalogue === '1') {
-            showCatalogue();
+            catalogue = new Catalogue();
+            catalogue.getCatalogue();
         }
         let brand = await promptUser("Please enter brand of paint you would like: ");
         let colour = await promptUser("Please enter colour of paint you would like: ");
@@ -119,29 +155,31 @@ async function userForm() {
         if (takeAwayBool === '1') {
             takeAwayShape = await getShape('obstruction');
         if (!takeAwayShape) continue;
-            shapeInstructions(shape,"obstruction")
+            shapeInstructions(takeAwayShape,"obstruction");
             takeAwayDimensions = await getAreas(takeAwayShape);
         }
 
-        walls.push([shape, dimensions, brand, colour, takeAwayShape, takeAwayDimensions]);
+        let toPaint = new Area(shape,dimensions);
+        let toTakeAway = new Area(takeAwayShape,takeAwayDimensions);
+        walls.push([toPaint, toTakeAway, brand, colour]);
     }
 
     console.log(walls);
     rl.close();
     return walls;
 }
-
+//Function to calculate cost of paint job given info on users walls
 async function getQuote() {
     const walls = await userForm();
     for (let wall of walls) {
-      const area = calculateArea(wall[0], wall[1]);
-      const takeAwayArea = calculateArea(wall[4], wall[5]);
+      const area = wall[0].area
+      const takeAwayArea = wall[1].area
       let cost = calculatePrice(area, wall[2], wall[3]) - calculatePrice(takeAwayArea, wall[2], wall[3]);
       if  (cost < 0){
-        console.log("Given obstacle is larger than given area to paint, thus cost will be £0")
-        cost = 0
+        console.log("Given obstacle is larger than given area to paint, thus cost will be £0");
+        cost = 0;
       }
-      console.log(`Wall ${wall[0]} will cost £${cost.toFixed(2)}`);
+      console.log(`Wall ${wall[0].getDetails()} will cost £${cost.toFixed(2)}`);
     }
   }
 
