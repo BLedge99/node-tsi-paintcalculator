@@ -30,25 +30,25 @@ class Area {
 class Catalogue{
     constructor(){
 
-        this.catalogue= {
+        this.catalogue = {
             'Dulux': {
-                "Matt White": [[10,2.40],[5,3.60],[2.5,6.40]],
-                "Pure Brilliant White Silk Emulsion": [[10,2.40],[5,3.60],[2.5,6.40]],
-                "Matt Standard Emerald Glade": [[10,2.40],[5,3.60],[2.5,6]],
-                "Matt Easycare Willow Emulsion": [[2.5,11.20],[0.03,81.67]],
-                "Kiwi Crush Silk": [[2.5,8.80]],
+                "Matt White": [[10, 24.00], [5, 18.00], [2.5, 16.00]],
+                "Pure Brilliant White Silk Emulsion": [[10, 24.00], [5, 18.00], [2.5, 16.00]],
+                "Matt Standard Emerald Glade": [[10, 24.00], [5, 18.00], [2.5, 15.00]],
+                "Matt Easycare Willow Emulsion": [[2.5, 28.00], [0.03, 2.45]],
+                "Kiwi Crush Silk": [[2.5, 22.00]],
             },
             'Zinsser': {
-                "Matt White Anti Mold": [[1,21]],
-                "Perma White Satin Anti Mold": [[2.5,16.80],[1,21]],
-                "Black Multi Surface AllCoat": [[1,28]],
+                "Matt White Anti Mold": [[1, 21.00]],
+                "Perma White Satin Anti Mold": [[2.5, 42.00], [1, 21.00]],
+                "Black Multi Surface AllCoat": [[1, 28.00]],
             },
             'Berger': {
-                "Silk Emulsion Lemon Glow": [[2.5,8.40]],
-                "Navy Blue Non-Drip": [[0.75,22.19]],
-                "Quick Dry Matt White": [[10,4],[5,4.50],[3,6.30],[1,12.20]],
-                "Gloss Non-Drip Russian Red": [[0.75,22.19]],
-                "Satin Magnolla": [[0.75,28.00]]
+                "Silk Emulsion Lemon Glow": [[2.5, 21.00]],
+                "Navy Blue Non-Drip": [[0.75, 16.65]],
+                "Quick Dry Matt White": [[10, 40.00], [5, 22.50], [3, 18.90], [1, 12.20]],
+                "Gloss Non-Drip Russian Red": [[0.75, 16.65]],
+                "Satin Magnolla": [[0.75, 21.00]]
             }
         };
     }
@@ -69,6 +69,7 @@ class Catalogue{
         console.log(this.catalogue);
     }
 }
+
 //Setup readline for reading cmd input and writing to console
 const readline = require('node:readline');
 const rl = readline.createInterface({
@@ -106,6 +107,28 @@ function shapeInstructions(shape,area){
             break;
     }
 }
+
+
+//Recursive generator function to find cost of all can combos 
+function* findcombos(sizes, costs, cost, target, current, index) {
+    //yield current cost if target reached
+    if (current >= target) {
+        yield cost;
+        return;
+    }
+
+    //if no more can sizes stop recursion
+    if (index >= sizes.length) {
+        return;
+    }
+
+    //continue adding current can size
+    yield* findcombos(sizes, costs, cost + costs[index], target, current + sizes[index], index);
+
+    //move onto next can size
+    yield* findcombos(sizes, costs, cost, target, current, index + 1);
+}
+
 //Function to get users desired shape and ensure it is a valid input
 async function getShape(area) {
     let shape = await promptUser(`Please enter shape of ${area} (Rectangle, Triangle, Circle): `);
@@ -172,8 +195,8 @@ async function userForm() {
 async function getQuote() {
     const walls = await userForm();
     for (let wall of walls) {
-      const area = wall[0].area
-      const takeAwayArea = wall[1].area
+      const area = wall[0].area;
+      const takeAwayArea = wall[1].area;
       let cost = calculatePrice(area, wall[2], wall[3]) - calculatePrice(takeAwayArea, wall[2], wall[3]);
       if  (cost < 0){
         console.log("Given obstacle is larger than given area to paint, thus cost will be £0");
@@ -183,5 +206,49 @@ async function getQuote() {
     }
   }
 
-getQuote();
+  
+
+async function getQuote2() {
+    const walls = await userForm();
+    for (let wall of walls){
+        let area = wall[0].area - wall[1].area;
+        let brand = wall[2];
+        let colour = wall[3];
+        getCheapCanCombo(area, brand, colour);
+    }
+  }
+
+
+function getCheapCanCombo(area, brand, colour){
+
+    console.log("Test123")
+
+    const coverage = 10; // 10 square meters per liter of paint as per bnq paint calculator
+    paintNeeded = area/coverage;
+
+    catalogue = new Catalogue();
+    catalogue = catalogue.catalogue;
+    
+    cans = catalogue[brand][colour];
+    let costlist = []
+    let sizelist = []
+    for (can of cans) {
+        costlist.push(can[1]);
+        sizelist.push(can[0]);
+    }
+
+    const results = Array.from(findcombos(sizelist, costlist, 0, paintNeeded, 0, 0));
+    if (results.length > 0) {
+        const minCost = Math.min(...results);
+        console.log(`Minimum cost to paint your wall: £${minCost}`);
+    } else {
+        console.log("Sorry an error occured, we were unable to find the cost to paint your wall.");
+    }
+
+}
+
+
+
+
+getQuote2();
 
