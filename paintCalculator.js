@@ -10,7 +10,7 @@ class Area {
       if (this.shape === 'Rectangle') {
         return this.dimensions[0] * this.dimensions[1];
       } 
-      else if (this.shape === 'Triangle') {
+      else if (this.shape === 'Triangle') { //Heron's formula
         const [a, b, c] = this.dimensions;
         const s = (a + b + c) / 2;
         return Math.sqrt(s * (s - a) * (s - b) * (s - c));
@@ -56,17 +56,17 @@ class Catalogue{
         this.catalogue = catalogue;
     }
 
-    addendCatalogue(catalogue){
+    appendCatalogue(catalogue){
         this.catalogue = { ...this.catalogue, ...catalogue};
     }
 
-    updateCatalogue(catalogue){
-
+    updateCatalogue(brand,colour,prices){
+        this.catalogue[brand][colour] = prices;
     }
 
     getCatalogue(){
         for (const key in this.catalogue) {
-            console.log(key, Object.keys(this.catalogue[key]));
+            console.log(key, Object.keys(this.catalogue[key])); //Return dict without arrays 
         }
     }
 }
@@ -89,11 +89,13 @@ function promptUser(question) {
         });
     });
 }
+
 //Function takes an area, brand and colour and returns total cost of covering that area in that paint
 function calculatePrice(area, brand, colour) {//update
     let catalogue = new Catalogue();
     return area * catalogue.catalogue[brand][colour];
 }
+
 //Function to give user dynamic prompt based on the shape of their given area
 function shapeInstructions(shape,area){
     switch (shape){
@@ -108,7 +110,6 @@ function shapeInstructions(shape,area){
             break;
     }
 }
-
 
 //Recursive generator function to find cost of all can combos 
 function* findcombos(sizes, costs, cost, target, current, index) {
@@ -140,6 +141,7 @@ async function getShape(area) {
     }
     return shape;
 }
+
 //Function to get all nececarry dimensions of the given shape
 async function getAreas(shape) {
     let dimensions = [];
@@ -148,19 +150,20 @@ async function getAreas(shape) {
     }
     return dimensions;
 }
+
 //Function to handle getting info about users walls
 async function userForm() {
     let walls = [];
     const numWalls = parseInt(await promptUser("Please enter the number of walls you would like to paint: "));
     console.log("You will now be asked to enter details about each wall you would like to paint");
 
-    //Iterate over each wall to be painted
+    //iterate over each wall to be painted
     for (let i = 0; i < numWalls; i++) {
         console.log(`Please enter details about wall ${i + 1}: `);
         //Get shape of wall
         let shape = await getShape('wall');
         if (!shape) continue;
-        //Find wall dimensions
+        //find wall dimensions
         console.log("Next, you will be asked to enter the dimensions of your wall: ");
         shapeInstructions(shape,"wall");
         let dimensions = await getAreas(shape);
@@ -172,7 +175,7 @@ async function userForm() {
         }
         let brand = await promptUser("Please enter brand of paint you would like: ");
         let colour = await promptUser("Please enter colour of paint you would like: ");
-        //Get any area the user might not want to paint, for example a door
+        //get any area the user might not want to paint, for example a door
         let takeAwayShape = 'Circle';
         let takeAwayDimensions = [0];
         let takeAwayBool = await promptUser("You will now be asked for the details of any obstructions in your wall, for example a door, if you have any obstructions please type 1, otherwise press enter: ");
@@ -192,6 +195,7 @@ async function userForm() {
     rl.close();
     return walls;
 }
+
 //Function to calculate cost of paint job given info on users walls
 async function getQuote() {
     const walls = await userForm();
@@ -207,9 +211,7 @@ async function getQuote() {
     }
   }
 
-  
-
-async function getQuote2() {
+async function getQuote2() { //send each wall to paint to function to find cheapest combo of cans 
     const walls = await userForm();
     for (let wall of walls){
         let area = wall[0].area - wall[1].area;
@@ -217,7 +219,7 @@ async function getQuote2() {
         let colour = wall[3];
         getCheapCanCombo(area, brand, colour);
     }
-  }
+}
 
 
 function getCheapCanCombo(area, brand, colour){
@@ -227,7 +229,6 @@ function getCheapCanCombo(area, brand, colour){
 
     catalogue = new Catalogue();
     catalogue = catalogue.catalogue;
-    
     cans = catalogue[brand][colour];
     let costlist = [];
     let sizelist = [];
@@ -245,5 +246,41 @@ function getCheapCanCombo(area, brand, colour){
     }
 
 }
+
+//getQuote2();
+
+//getQuote3 
+//-create a dict of dicts 
+//iterate through walls 
+//if colour/brand of wall exists in dict then add dict[colour][brand] += area
+//else dict[colour][brand] = area
+//then iterate over dict extracting area,colour,brand calling getCheapCanCombo with each [brand][colour] combo
+//thus calculates cheapest cost for all walls using that paint
+
+
+async function getQuote3(){
+    const walls = await userForm();
+    let colourWalls = {};
+    for (let wall of walls){
+        let area = wall[0].area - wall[1].area;
+        let brand = wall[2];
+        let colour = wall[3];
+        let brandColour = brand + ' ' + colour;
+        if (colourWalls[brandColour]){
+            colourWalls[brandColour] += area; 
+        }
+        else {
+            colourWalls[brandColour] = area;
+        }
+    }
+
+    for (let brandcolour in colourWalls){
+        let [brand, colour] = brandcolour.split(' ');
+        console.log(colourWalls[brandcolour])
+        getCheapCanCombo(colourWalls[brandcolour], brand, colour);
+    }
+
+}
+
 
 getQuote2();
