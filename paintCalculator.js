@@ -1,5 +1,4 @@
-
-//Class for some general area, calculates area of area based on it's shape and dimensions
+//Class for an area, calculates area of area based on it's shape and dimensions
 class Area {
     constructor(shape, dimensions) {
       this.shape = shape;
@@ -22,7 +21,7 @@ class Area {
     }
 
     getDetails(){
-        return `with Shape: ${this.shape}  and Dimensions: ${this.dimensions}`
+        return `with Shape: ${this.shape}  and Dimensions: ${this.dimensions}`;
     }
   }
 
@@ -66,7 +65,9 @@ class Catalogue{
     }
 
     getCatalogue(){
-        console.log(this.catalogue);
+        for (const key in this.catalogue) {
+            console.log(key, Object.keys(this.catalogue[key]));
+        }
     }
 }
 
@@ -90,7 +91,7 @@ function promptUser(question) {
 }
 //Function takes an area, brand and colour and returns total cost of covering that area in that paint
 function calculatePrice(area, brand, colour) {//update
-    let catalogue = new Catalogue()
+    let catalogue = new Catalogue();
     return area * catalogue.catalogue[brand][colour];
 }
 //Function to give user dynamic prompt based on the shape of their given area
@@ -221,8 +222,6 @@ async function getQuote2() {
 
 function getCheapCanCombo(area, brand, colour){
 
-    console.log("Test123")
-
     const coverage = 10; // 10 square meters per liter of paint as per bnq paint calculator
     paintNeeded = area/coverage;
 
@@ -230,8 +229,8 @@ function getCheapCanCombo(area, brand, colour){
     catalogue = catalogue.catalogue;
     
     cans = catalogue[brand][colour];
-    let costlist = []
-    let sizelist = []
+    let costlist = [];
+    let sizelist = [];
     for (can of cans) {
         costlist.push(can[1]);
         sizelist.push(can[0]);
@@ -247,8 +246,4 @@ function getCheapCanCombo(area, brand, colour){
 
 }
 
-
-
-
 getQuote2();
-
