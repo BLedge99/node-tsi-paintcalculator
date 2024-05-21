@@ -282,5 +282,11 @@ async function getQuote3(){
 
 }
 
+module.exports = {
+    Area,
+    Catalogue,
+    getCheapCanCombo
+};
+
 
 getQuote2();

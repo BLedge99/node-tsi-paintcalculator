@@ -1,0 +1,11 @@
+{
+    "name": "tsi-paint-calculator",
+    "version": "0.1.0",
+    "main": "paintCalculator.js",
+    "scripts": {
+        "test": "jest --detectOpenHandles"
+    },
+    "devDependencies": {
+        "jest": "^29.7.0"
+    }
+}
